@@ -1,0 +1,135 @@
+asyncapi: 2.0.1
+info:
+  title: Event Catalog Manager Events
+  version: 1.0.0
+  description: |-
+    Event Catalog Manager(ECM) events to Create, Update the
+    specification data on ECM and to ingest the data on to the Allen Portal
+  contact:
+    email: dl.eventmanagement.platform.se@ingka.com
+channels:
+  INGKA-techServices-EVENTP-ECMService-v1-prod:
+    description: |-
+      Event catalog service publish the Event specification data on to
+      this channel which can be consumed by ECM Event listener application.
+    subscribe:
+      summary: Publish the Event related to the Event specification data
+      message:
+        $ref: "#/components/messages/ECMService-event-data-v1"
+    x-ingka-attributes:
+      confidentiality: internal
+      visibility: ikea-internal
+      reusability: system
+      status: published
+      event-mesh-visibility: global
+  INGKA-techServices-EVENTP-ECMDataFeed-v1-prod:
+    description: |-
+      Event catalog service publish the Event specification data on to
+      this channel which is consumed by ECM or other Ingka systems who are interested in event data feeds.
+    subscribe:
+      summary: Publish the Event related to the Event specification feed data
+      message:
+        $ref: "#/components/messages/ECMService-feeds-data-v1"
+    x-ingka-attributes:
+      confidentiality: internal
+      visibility: ikea-internal
+      reusability: system
+      status: published
+      event-mesh-visibility: global
+components:
+  messages:
+    ECMService-event-data-v1:
+      payload:
+        $ref: "#/components/schemas/ECMService-event-data-schema-v1"
+      schemaFormat: application/vnd.aai.asyncapi+json;version=2.0.0
+      contentType: application/json
+    ECMService-feeds-data-v1:
+      payload:
+        $ref: "#/components/schemas/ECMService-feeds-data-schema-v1"
+      schemaFormat: application/vnd.aai.asyncapi+json;version=2.0.0
+      contentType: application/json
+  schemas:
+    ECMService-event-data-schema-v1:
+      $schema: http://json-schema.org/draft-07/schema#
+      type: object
+      title: Ingest data to Allen Event Schema
+      required:
+        - retryCount
+        - smcData
+        - specData
+        - eventAndSchema
+        - rawSpec
+      properties:
+        retryCount:
+          examples:
+            - 1
+          type: string
+          title: Retry Count
+          $id: "#/properties/retryCount"
+        smcData:
+          examples:
+            - {}
+          type: object
+          title: SMC Data
+          $id: "#/properties/smcData"
+        specData:
+          examples:
+            - {}
+          type: object
+          title: Specification Data
+          $id: "#/properties/specData"
+        eventAndSchema:
+          examples:
+            - {}
+          type: object
+          title: Event and Schema
+          $id: "#/properties/eventAndSchema"
+        rawSpec:
+          examples:
+            - {}
+          type: object
+          title: Raw Specification
+          $id: "#/properties/rawSpec"
+      $id: http://ingka.com/ingestToAllen.json
+    ECMService-feeds-data-schema-v1:
+      $schema: http://json-schema.org/draft-07/schema#
+      type: object
+      title: Ingest data to Allen Event Schema
+      required:
+        - retryCount
+        - smcData
+        - specData
+        - eventAndSchema
+        - rawSpec
+      properties:
+        retryCount:
+          examples:
+            - 1
+          type: string
+          title: Retry Count
+          $id: "#/properties/retryCount"
+        smcData:
+          examples:
+            - {}
+          type: object
+          title: SMC Data
+          $id: "#/properties/smcData"
+        specData:
+          examples:
+            - {}
+          type: object
+          title: Specification Data
+          $id: "#/properties/specData"
+        eventAndSchema:
+          examples:
+            - {}
+          type: object
+          title: Event and Schema
+          $id: "#/properties/eventAndSchema"
+        rawSpec:
+          examples:
+            - {}
+          type: object
+          title: Raw Specification
+          $id: "#/properties/rawSpec"
+      $id: http://ingka.com/ingestToAllen.json
