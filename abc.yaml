@@ -1,55 +1,91 @@
-asyncapi: 2.0.1
+#Disclaimer - This is a sample specification for event publishers which can be referenced to design your AsyncAPI specification. For each required section the description or link has been provided for further details. 
+#AsyncAPI Specification guide: https://confluence.build.ingka.ikea.com/x/WXLVEQ
+asyncapi: 2.4.0
 info:
-  title: Event Catalog Manager Events
-  version: 1.0.0
-  description: |-
-    Event Catalog Manager(ECM) events to Create, Update the
-    specification data on ECM and to ingest the data on to the Allen Portal
+  #This represents the name of Application API. This will be logical name of group of events.
+  title: Manage ECM Events
+      
+  #For details on versioning, visit https://confluence.build.ingka.ikea.com/x/lYEvEg
+  version: '1.0.0'   
+  description: "Event Catalog Manager(ECM) events to Create, Update the specification data on ECM and to ingest the data on to the Allen Portal"
+    
   contact:
+    #Team Distribution Email address.        
     email: dl.eventmanagement.platform.se@ingka.com
-channels:
-  INGKA-techServices-EVENTP-ECMService-v1-prod:
-    description: |-
-      Event catalog service publish the Event specification data on to
-      this channel which can be consumed by ECM Event listener application.
-    subscribe:
-      summary: Publish the Event related to the Event specification data
+#servers attribute is optional, it will have details for your environment and servers
+#For details https://www.asyncapi.com/docs/reference/specification/v2.4.0#serversObject
+servers:
+  Development:
+    url: GCP project name
+    protocol: gcloud-pubsub 
+    description: Development Broker Server
+  Stage:
+    url: GCP project name
+    protocol: gcloud-pubsub
+    description: Stage broker server
+  Production:
+    url: GCP project name
+    protocol: gcloud-pubsub
+    description: Production broker server
+     
+channels:  
+  # For detail on Event Mesh Topic & Queue-Enterprise Naming Standard, visit https://confluence.build.ingka.ikea.com/x/uAQoD:
+  # Sample Event Mesh Topic Name:
+  #DataEntityNamespace/DataEntityName/DataScope/Verb/V1/{EventRegion}/EventOriginator/AnyFieldAfterThis:
+   
+  # For detail on naming Google Pub/Sub, visit https://confluence.build.ingka.ikea.com/x/rJ4WBw
+  # Sample Google Pub/Sub Topic Name:
+  #ingka-techServices-eventm-eventData-v1-prod
+  
+  ingka-techServices-eventm-eventData-v1-{environment}:
+    description: Event catalog service publish the Event specification data on to this channel which is consumed by Event listener application.
+      
+    # parameters in topic name, the reference of parameters will be defined as mentioned below
+    parameters:        
+      environment:
+        $ref: '#/components/parameters/environment'
+    # servers attribute is optional and it will accept list of servers defined above.
+    servers:
+      - Development
+      - Stage
+    subscribe:  
+      summary: Publish the Event related to the Event specification data.
       message:
-        $ref: "#/components/messages/ECMService-event-data-v1"
+        #The event name is extracted from this reference, for example, ecm-event-data-v1 will be an event name.
+        $ref: '#/components/messages/ecm-event-data-v1'
+     
     x-ingka-attributes:
-      confidentiality: internal
-      visibility: ikea-internal
-      reusability: system
-      status: published
-      event-mesh-visibility: global
-  INGKA-techServices-EVENTP-ECMDataFeed-v1-prod:
-    description: |-
-      Event catalog service publish the Event specification data on to
-      this channel which is consumed by ECM or other Ingka systems who are interested in event data feeds.
-    subscribe:
-      summary: Publish the Event related to the Event specification feed data
-      message:
-        $ref: "#/components/messages/ECMService-feeds-data-v1"
-    x-ingka-attributes:
-      confidentiality: internal
-      visibility: ikea-internal
-      reusability: system
-      status: published
-      event-mesh-visibility: global
-components:
+      #Event Classifications have been derived from INGKA API Classification
+      #Link to API Classification: https://confluence.build.ingka.ikea.com/x/QHWsCg
+      # all x-ingka-attributes are mandatory, user have to provide it in asyncAPI specification
+      #confidentiality values can be either- public, internal, confidential, or strictly-confidential. The default value is 'internal'.    
+      confidentiality: 'internal'
+  
+      #visibility values can be either- public, private,ikea-internal, or ikea partner. The default value is 'ikea-internal'.
+      visibility: 'ikea-internal'
+  
+      #reusability values can be either- business, system, or single-purpose. The default value is 'business'
+      reusability: 'system'
+  
+      #status values can be either- draft, published, deprecated, or retired. The default value is 'draft'
+      status: 'draft'
+        
+      # The attribute primarily says where the event will be available. Value can be 'global, China, or Russia'. The default value is Global.
+      event-mesh-visibility: 'global'
+                       
+components:    
   messages:
-    ECMService-event-data-v1:
+    #Name of the Event
+    ecm-event-data-v1:
       payload:
-        $ref: "#/components/schemas/ECMService-event-data-schema-v1"
+        #The Schema name is extracted from this reference, for example, ecm-event-data-schema-v1 will be a Schema name.
+        $ref: "#/components/schemas/ecm-event-data-schema-v1"
       schemaFormat: application/vnd.aai.asyncapi+json;version=2.0.0
       contentType: application/json
-    ECMService-feeds-data-v1:
-      payload:
-        $ref: "#/components/schemas/ECMService-feeds-data-schema-v1"
-      schemaFormat: application/vnd.aai.asyncapi+json;version=2.0.0
-      contentType: application/json
+            
   schemas:
-    ECMService-event-data-schema-v1:
+    #Name of the Schema
+    ecm-event-data-schema-v1:
       $schema: http://json-schema.org/draft-07/schema#
       type: object
       title: Ingest data to Allen Event Schema
@@ -90,46 +126,13 @@ components:
           type: object
           title: Raw Specification
           $id: "#/properties/rawSpec"
-      $id: http://ingka.com/ingestToAllen.json
-    ECMService-feeds-data-schema-v1:
-      $schema: http://json-schema.org/draft-07/schema#
-      type: object
-      title: Ingest data to Allen Event Schema
-      required:
-        - retryCount
-        - smcData
-        - specData
-        - eventAndSchema
-        - rawSpec
-      properties:
-        retryCount:
-          examples:
-            - 1
-          type: string
-          title: Retry Count
-          $id: "#/properties/retryCount"
-        smcData:
-          examples:
-            - {}
-          type: object
-          title: SMC Data
-          $id: "#/properties/smcData"
-        specData:
-          examples:
-            - {}
-          type: object
-          title: Specification Data
-          $id: "#/properties/specData"
-        eventAndSchema:
-          examples:
-            - {}
-          type: object
-          title: Event and Schema
-          $id: "#/properties/eventAndSchema"
-        rawSpec:
-          examples:
-            - {}
-          type: object
-          title: Raw Specification
-          $id: "#/properties/rawSpec"
-      $id: http://ingka.com/ingestToAllen.json
+      $id: http://ingka.com/ingestToAllen.json     
+ #Parameter references in case passed as part of Topic name
+  parameters:
+     environment:
+      description: environment where topic is deployed
+      schema:
+        type: string
+        examples:
+           - 'Stage'
+           - 'Prod'
